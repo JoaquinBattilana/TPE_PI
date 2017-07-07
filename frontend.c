@@ -45,7 +45,8 @@ int getLine(char * s, int [MAXLINEA]){
                               error=1;
                          break;
              }
-        }while(c!=EOF && c!='\n' && !error);
-
+        }while(c!=EOF && c!='\n' && !error && cantidad <= MAXLINEA);
+        if ( cantidad > MAXLINEA)
+              error=1;
         return error;
 }
