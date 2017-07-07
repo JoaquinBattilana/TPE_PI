@@ -6,7 +6,7 @@ enum estado {NUMERO, PALABRA};
 int getLine(char *, int []);
 
 
-int getLine(char * s, int [MAXLINEA]){
+int getLine(char * s, int v[MAXLINEA]){
         int i=0;
         char c;
         int numero=0;
