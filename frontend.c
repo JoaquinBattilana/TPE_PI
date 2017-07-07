@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+
 enum estado {NUMERO, PALABRA};
 #define MAXLINEA 80
 #define CNTDATOSNUM 4
@@ -5,6 +9,12 @@ enum estado {NUMERO, PALABRA};
 
 int getLine(char *, int []);
 
+int main(void){
+    int v[MAXLINEA];
+    char * s;
+    getLine(s,v);
+    printf("%d,%d,%d,%s,%d", v[0], v[1], v[2], s, v[3]);
+}
 
 int getLine(char * s, int v[MAXLINEA]){
         int i=0;
