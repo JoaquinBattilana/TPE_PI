@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
 
 enum estado {NUMERO, PALABRA};
 #define MAXLINEA 80
@@ -17,7 +18,8 @@ int main(void){
 }
 
 int getLine(char * s, int v[MAXLINEA]){
-        int i=0;
+	int estado=NUMERO;
+        int i=0,error=0;
         char c;
         int numero=0;
         int cantidad=0;
@@ -30,7 +32,7 @@ int getLine(char * s, int v[MAXLINEA]){
                         case NUMERO:
                          if(isdigit(c))
                                  numero=numero*10+(c-'0');
-                         else if(((c==',' || c=='\n' || c==EOF) && cantidad>0){
+                         else if((c==',' || c=='\n' || c==EOF) && cantidad>0){
                                  cantidad=0;
                                  v[i++]=numero;
                                  numero=0;
@@ -46,6 +48,7 @@ int getLine(char * s, int v[MAXLINEA]){
                                         s=realloc(NULL, cantidad+BLOQUE);
                                 s[cantidad]=c;
                                 cantidad++;
+			}
                           else if(c==',' && cantidad>0){
                                 s[cantidad]='\0';
                                 cantidad=0;
