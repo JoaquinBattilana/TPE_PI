@@ -3,166 +3,176 @@
 #include <stdlib.h>
 #include "backend.h"
 
-#define MAX_LEGHT 24
-#define MAX_HOGAR 9
+#define CNTPROV 24
+#define MAX_VIVIENDA 9
 
-typedef enum{CABA=0,Buenos Aires,Catamarca,Cordoba,Corrientes,Chaco,Chubut,Entre Rios,Formosa,Jujuy,La Pampa,La Rioja,Mendoza,Misiones,Neuquen,Rio Negro,Salta,San Juan,San Luis,Santa Cruz,Santa Fe,Santiago del Estero,Tucuman,Tierra del Fuego}
-Tprovincia;
+/*
+typedef enum{CABA=1,BUENOSAIRES,CATAMARCA,CORDOBA,CORRIENTES,CHACO,CHUBUT,ENTRERIOS,FORMOSA,JUJUY,LAPAMPA,LARIOJA,MENDOZA,MISIONES,NEUQUEN
+    ,RIONEGRO,SALTA,SANJUAN,SANLUIS,SANTACRUZ,SANTAFE,SANTIAGODELESTERO,TUCUMAN,TIERRADELFUEGO};
+typedef enum{CASA=1,RANCHO,CASILLA,DEPARTAMENTO,PIEZAENINQUILINATO,PENSION,LOCAL,VIVIENDAMOVIL,CALLE};
+*/
 
-typedef TnodeCDT* Tlist;
+char * provincias[]={"Ciudad autonoma de Buenos Aires", "Buenos Aires", "Catamarca", "Cordoba", "Corrientes", "Chaco", "Chubut", "Entre Rios", "Formosa", "Jujuy", "La Pampa", "La Rioja", "Mendoza",
+"Misiones", "Neuquen", "Rio Negro", "Salta", "San Juan", "San Luis", "Santa Cruz", "Santa Fe", "Santiago del Estero", "Tucuman", "Tierra del Fuego"};
+char * viviendas[]={"Casa", "Rancho", "Casilla", "Departamento", "Pieza en Inquilinato", "Pieza en hotel familiar o pension", "Local no construido para habitacion", "Vivienda movil", 
+"Persona/s viviendo en la calle"};
 
-struct CensoCDT
+typedef struct node * tList;
+
+static tList addR(tList,int,int,int, char*);
+void add(censoADT,int,int,int, int, char*);
+void imprimirProvincia(censoADT, int);
+static void imprimirProvinciaR(tLista);
+void analfabetismoCsv(censoADT);
+static double indiceDeAnalfabetismo(int, int );
+static int sumaEdades(tList);
+void provinciaCsv(censoADT);
+static double edadesProm(tList, int);
+static int sumaEdades(tList);
+void departamentoCsv(censoADT);
+
+struct censoCDT
 {
-  Tlist prov[MAX_LEGHT];
-  int habxprov[MAX_LEGHT];
-  int alfaxprov[MAX_LEGHT];
-  int habxhogar[MAX_HOGAR];
-  int alfaxhogar[MAX_HOGAR];
-  char* hogar={"Casa","Rancho","Casilla","Departamento","Pieza en inquilinato","Pieza en hotel familiar o pension","Local no construido para habitacion","Vivienda movil","Persona/s viviendo en la  calle"};
-  Tprovincia provincia;
+    tList listaProv[CNTPROV];
+    int habxprov[CNTPROV];
+    int alfaxprov[CNTPROV];
+    int habxviv[MAX_VIVIENDA];
+    int alfaxviv[MAX_VIVIENDA];
 };
 
-struct DatosCDT
+typedef struct {
+    int edad;
+    int alfa;
+    int vivienda;
+    char *dpto;
+}tDato;
+
+typedef struct node
 {
-  int edad;
-  int alfa;
-  int vivienda;
-  char* partido;
+    tDato datos;
+    struct node * next;
+}tNode;
+
+typedef struct censoCDT * censoADT;
+
+censoADT newCenso(void)
+{
+    censoADT censo=calloc(1,sizeof(*censo));
+    for(int i=0; i<CNTPROV; i++)
+        censo->listaProv[i]=NULL;
+    return censo;
 }
 
-struct TnodeCDT
-{
-  struct DatosCDT datos;
-  struct TnodeCDT* last;
-  struct TnodeCDT* next;
-};
-
-CensoADT New(void)
-{
-  CensoADT censo=malloc(sizeof(*censo));
-  return censo;
-}
-
-static int VerifAlfa(Tlist l,char* partido)
-{
-  int c;
-  if(c=strcmp(l->datos.partido,partido)<0)
-    return 0;
-  if(c==0)
-    {
-      return l->datos.alfa + VerifAlfa(l->next,partido);
+void add(censoADT censo,int edad,int alfa,int vivienda, int provincia, char* dpto){
+    provincia--;
+    vivienda--;
+    censo->listaProv[provincia] = addR(censo->listaProv[provincia],edad,alfa,vivienda,dpto);
+    if(alfa==1) {
+        censo->alfaxprov[provincia]++;
+        censo->alfaxviv[vivienda]++;
     }
-  return VerifAlfa(l->next,partido);
+    censo->habxprov[provincia]++;
+    censo->habxviv[vivienda]++;
+    return;
 }
 
-static void ToBegin(Tlist l)
+static tList addR(tList l,int edad,int alfa,int vivienda, char* dpto)
 {
-  l->last=l;
-}
-
-static void ChangeLast(Tlist l)
-{
-  int c;
-  if(l==NULL)
+    if(l==NULL || strcmp(l->datos.dpto,dpto)>0)
     {
-      l->last=l;
-      return;
+        tList aux=calloc(1,sizeof(*aux));
+        aux->datos.edad=edad;
+        aux->datos.alfa=alfa;
+        aux->datos.vivienda=vivienda;
+        aux->datos.dpto=malloc(strlen(dpto)+1);
+        strcpy(aux->datos.dpto,dpto);
+        aux->next=l;
+        return aux;
     }
-  if(strcmp(l->datos.partido,l->next->datos.partido)!=0)
+    l->next=addR(l->next,edad,alfa,vivienda,dpto);
+    return l;
+}
+
+void imprimirProvincia(censoADT censo,int provincia){
+    imprimirProvinciaR(censo->listaProv[provincia]);
+}
+
+static void imprimirProvinciaR(tList l){
+    if(l==NULL)
+        return; 
+    printf("edad: %d, dpto: %s, alfabetismo: %d, vivienda: %d \n",
+        l->datos.edad, l->datos.dpto, l->datos.alfa, l->datos.vivienda);
+    imprimirProvinciaR(l->next);
+    return;
+}
+
+void analfabetismoCsv(censoADT censo)
+{
+    FILE* fp;
+    int i;
+    fp=fopen("./Analfabetismo.csv","w");
+    for(i=0;i<MAX_VIVIENDA;i++)
+        fprintf(fp,"%d,%s,%d,%4.2f\n",i+1,viviendas[i],censo->habxviv[i],indiceDeAnalfabetismo(censo->alfaxviv[i], censo->habxviv[i]));
+    fclose(fp);
+}
+
+static double indiceDeAnalfabetismo(int analfabetos, int personas )
+{   if (analfabetos==0)
+        return 0;
+    return ((double)analfabetos)/personas;
+}
+
+void provinciaCsv(censoADT censo)
+{
+    FILE* fp;
+    int i;
+    fp=fopen("Provincia.csv","w");
+    for(i=0;i<CNTPROV;i++)
+        fprintf(fp,"%s,%d,%4.2f,%4.2f\n",provincias[i],censo->habxprov[i],edadesProm(censo->listaProv[i],censo->habxprov[i]),indiceDeAnalfabetismo(censo->alfaxprov[i], censo->habxprov[i]));
+    fclose(fp);
+}
+
+static double edadesProm(tList l, int habitantes){
+    if (habitantes == 0)
+        return 0;
+    int suma=sumaEdades(l);
+    return (double)suma/habitantes;
+}
+
+static int sumaEdades(tList l)
+{
+    if(l==NULL)
+        return 0;
+    return l->datos.edad + sumaEdades(l->next);
+}
+
+void departamentoCsv(censoADT censo)
+{
+    FILE* fp;
+    int i,c;
+    fp=fopen("Departamentos.csv","w");
+    for(i=0;i<CNTPROV;i++)
     {
-      l->last=l->next;
-      return;
+    	if(censo->listaProv[i]!=NULL){
+    		tList aux=censo->listaProv[i];
+    		int sumaAlfa=0;
+    		int habitantes=0;
+    		while(aux->next!=NULL){
+    			sumaAlfa+=aux->datos.alfa;
+    			habitantes++;
+    			if(strcmp(aux->datos.dpto,aux->next->datos.dpto)!=0){
+ 	   				fprintf(fp,"%s,%s,%d,%4.2f\n",provincias[i], aux->datos.dpto, habitantes, indiceDeAnalfabetismo(sumaAlfa, habitantes));
+ 	   				habitantes=0;
+ 	   				sumaAlfa=0;
+    			}
+ 	   			aux=aux->next;
+ 	   		}
+ 	   		sumaAlfa+=aux->datos.alfa;
+    		habitantes++;
+    		fprintf(fp,"%s,%s,%d,%4.2f\n",provincias[i], aux->datos.dpto, habitantes, indiceDeAnalfabetismo(sumaAlfa, habitantes));
+
+    	}
     }
-  ChangeLast(l->next);
+    fclose(fp);	
 }
 
-
-Tlist Add(list l,int edad,int alfa,int vivienda,char* partido,int* habxprov,int* alfaxprov,int* habxhogar,int* alfaxhogar)
-{
-  int c;
-  if(l==NULL || c=strcmp(l->datos.partido,partido)<0)
-    {
-      Tlist aux=calloc(1,sizeof(*aux));
-      aux->datos=calloc(1,sizeof(*(aux->datos)));
-      aux->datos.edad=edad;
-      aux->datos.alfa=alfa;
-      aux->datos.vivienda;vivienda;
-      aux->datos.partido=calloc(strlen(partido)+1);
-      strcpy(aux->datos.partido,partido);
-      aux->next=l;
-      (*habxprov)++;
-      (*habxhogar)++;
-      if(alfa==1)
-        {
-          (*alfaxprov)++;
-          (*alfaxhogar)++;
-        }
-      return aux;
-    }
-  l->next=Add(l->next,edad,alfa,vivienda,partido,prov);
-  return l;
-}
-
-static int HabPartido(Tlist l,char* partido) //para la departamento
-{
-  if(l==NULL || (c=strcmp(l->datos.partido,partido)<0))
-    return 0;
-  if(c>0)
-    return HabPartido(l->next,partido);
-  return HabPartido(l->next,partido) +1;
-}
-
-static double IndiceDeAnal(int anlafabetas,int personasT)
-{
-  return analfabetas / personasT;
-}
-
-void Analfabetismo(CensoADT censo)
-{
-  FILE* fp;
-  int i;
-  fp=fopen("Analfabetismo.csv","r");
-  for(i=0;i<MAX_HOGAR;i++)
-    {
-      fprintf(fp,"%d,%s,%d,%4.2f\n",i+1,censo->hogar[i],censo->habxhogar[i],IndiceDeAnal(censo->habxhogar[i]-censo->alfaxhogar,censo->habxhogar[i]));
-    }
-  fclose(fp);
-}
-
-void Departamento(CensoADT censo)
-{
-  FILE* fp;
-  int i,c;
-  fp=fopen("Departamentos.csv","r");
-  for(i=0;i<MAX_LEGHT;i++)
-    {
-      ToBegin(censo->prov[i]);
-      while(censo->prov[i]->last==NULL)
-        {
-            censo->provincia=i;
-            fprintf(fp,"%s,%s,%d,%4.2f\n",censo->provincia,censo->prov->last.partido,c=HabPartido(censo->prov[i]->last,censo->prov[i]->last->datos.partido,IndiceDeAnal(c - VerifAlfa(censo->prov[i]->last,censo->prov[i]->last->datos.partido),c)));
-        }
-      ChangeLast(censo->prov[i]->last);
-    }
-  fclose(fp);
-}
-
-static int Edad(Tlist l)
-{
-  if(l==NULL)
-    return 0;
-  return l->datos.edad + Edad(l->next);
-}
-
-void Provincia(CensoADT censo)
-{
-  FILE* fp;
-  int i,c;
-  fp=fopen("Provincia.csv","r");
-  for(i=0;i<MAX_LEGHT;i++)
-    {
-      censo->provincia=i;
-      fprintf(fp,"%s,%d,%4.2f,%4.2f\n",censo->provincia,censo->habxprov[i],Edad(censo->prov[i])/censo->habxprov[i],IndiceDeAnal(censo->habxprov[i]-censo->alfaxprov[i],censo_>habxprov[i]));
-    }
-  fclose(fp);
-}
