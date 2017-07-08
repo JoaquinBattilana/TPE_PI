@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 enum estado {NUMERO=0, PALABRA};
-enum rta {ERROR, FINALIZO, LINEA};
+enum rta {ERROR=0, FINALIZO, LINEA};
 #define MAXLINEA 80
 #define CNTDATOSNUM 4
 #define BLOQUE 10
@@ -12,20 +12,23 @@ enum rta {ERROR, FINALIZO, LINEA};
 int getLine(char **, int []);
 
 int main(void){
+    int i=0;
 	int c;
+	int finalizo=0;
 	char * s;
-	inv v[CNTDATOSNUM];
+	int v[CNTDATOSNUM];
 	censoADT censo;
 	censo = newCenso();
-	while((c=getLine(&s, v))!=FINALIZO && c!=ERROR)
-		add(censo, v[0], v[1], v[2], v[4], s);
+	while((c=getLine(&s, v))!=ERROR && c!=FINALIZO){
+		add(censo, v[0], v[1], v[2], v[3], s);
+        printf("%d \n", i++);
+	}
 	if(c==ERROR)
-		printf("ERROR EN EL FORMATO");
+		printf("ERROR EN EL FORMATO \n");
 	else{
 		analfabetismoCsv(censo);
 		provinciaCsv(censo);
-		  departamentoCsv(censo);
-		imprimirProvincia(censo, 22);
+		departamentoCsv(censo);
 	}
 	return 0;
 }
@@ -41,6 +44,9 @@ int getLine(char ** s, int v[CNTDATOSNUM]){
     do{
         c=getchar();
         total++;
+        if(c==EOF)
+            rta=FINALIZO;
+        else{
         switch(estado){
             case NUMERO:
                 if(isdigit(c)) {
@@ -58,21 +64,22 @@ int getLine(char ** s, int v[CNTDATOSNUM]){
                     rta=ERROR;
                 break;
             case PALABRA:
-                if(isalpha(c) || isdigit(c)){
+                if(c==',' && cantidad>0){
+                    (*s)[cantidad]='\0';
+                    cantidad=0;
+                    estado=NUMERO;
+                }
+                else if(c!='\n' && c!=EOF){
                     if(cantidad%BLOQUE==0)
                         *s=realloc(*s, cantidad+BLOQUE);
                     (*s)[cantidad]=c;
                     cantidad++;
                 }
-                else if(c==',' && cantidad>0){
-                    (*s)[cantidad]='\0';
-                    cantidad=0;
-                    estado=NUMERO;
-                }
                 else
-                    rta=1;
+                    rta=ERROR;
                 break;
         }
+    }
     }while(c!=EOF && c!='\n' && rta!=ERROR && cantidad <= MAXLINEA);
     if ( cantidad > MAXLINEA)
         rta=ERROR;
