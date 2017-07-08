@@ -20,7 +20,7 @@ char * viviendas[]={"Casa", "Rancho", "Casilla", "Departamento", "Pieza en Inqui
 typedef struct node * tList;
 
 static tList addR(tList,int,int,int, char*);
-static void imprimirProvinciaR(tLista);
+static void imprimirProvinciaR(tList);
 static double indiceDeAnalfabetismo(int, int );
 static int sumaEdades(tList);
 static double edadesProm(tList, int);
