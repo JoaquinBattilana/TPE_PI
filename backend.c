@@ -20,16 +20,11 @@ char * viviendas[]={"Casa", "Rancho", "Casilla", "Departamento", "Pieza en Inqui
 typedef struct node * tList;
 
 static tList addR(tList,int,int,int, char*);
-void add(censoADT,int,int,int, int, char*);
-void imprimirProvincia(censoADT, int);
 static void imprimirProvinciaR(tLista);
-void analfabetismoCsv(censoADT);
 static double indiceDeAnalfabetismo(int, int );
 static int sumaEdades(tList);
-void provinciaCsv(censoADT);
 static double edadesProm(tList, int);
 static int sumaEdades(tList);
-void departamentoCsv(censoADT);
 
 struct censoCDT
 {
