@@ -12,25 +12,25 @@ enum rta {ERROR, FINALIZO, LINEA};
 int getLine(char **, int []);
 
 int main(void){
+	int c;
+	char * s;
+	inv v[CNTDATOSNUM];
 	censoADT censo;
 	censo = newCenso();
-	add(censo, 22, 1, 2, 23, "villa carlos gardel");
-	add(censo, 22, 1, 2, 23, "avilla carlos gardel");
-	add(censo, 22, 1, 2, 23, "bvilla carlos gardel");
-	add(censo, 22, 1, 2, 23, "bvilla carlos gardel");
-	add(censo, 99, 0, 4, 21, "bvilla carlos gardel");
-	add(censo, 99, 0, 9, 18, "bvilla carlos gardel");
-	add(censo, 99, 1, 8, 17, "bvilla carlos gardel");
-	add(censo, 99, 0, 8, 9, "bvilla carlos gardel");
-
-	analfabetismoCsv(censo);
-	provinciaCsv(censo);
-    departamentoCsv(censo);
-	imprimirProvincia(censo, 22);
+	while((c=getLine(&s, v))!=FINALIZO && c!=ERROR)
+		add(censo, v[0], v[1], v[2], v[4], s);
+	if(c==ERROR)
+		printf("ERROR EN EL FORMATO");
+	else{
+		analfabetismoCsv(censo);
+		provinciaCsv(censo);
+		  departamentoCsv(censo);
+		imprimirProvincia(censo, 22);
+	}
 	return 0;
 }
 
-int getLine(char ** s, int v[MAXLINEA]){
+int getLine(char ** s, int v[CNTDATOSNUM]){
     *s=NULL;
     int estado=NUMERO;
     int i=0,rta=LINEA;
